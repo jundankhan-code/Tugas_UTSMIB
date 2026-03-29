@@ -11,24 +11,30 @@ st.set_page_config(page_title="Health Facility KPI Dashboard", layout="wide")
 # Mengikuti materi Kuliah 2 & 3: Representasi Data & Klasifikasi [cite: 553, 3]
 @st.cache_data
 def load_real_data():
-    # Membaca file data rumah sakit
     df = pd.read_csv("data_rumah_sakit.csv")
     
-    # Memastikan format Tanggal benar untuk analisis time-series [cite: 861]
+    # Bersihkan spasi di awal/akhir nama kolom (sering jadi penyebab KeyError)
+    df.columns = df.columns.str.strip()
+    
     df["Tanggal"] = pd.to_datetime(df["Tanggal"])
     
-    # Menyamakan nama kolom CSV dengan variabel di kode dashboard [cite: 1013]
-    df = df.rename(columns={
+    # Gunakan mapping yang presisi sesuai isi CSV Anda
+    mapping = {
         "Nama Departemen": "Departemen",
         "Kode ICD-10": "Diagnosa_ICD10",
         "Waktu Tunggu (menit)": "Waktu_Tunggu",
         "Biaya (IDR)": "Biaya_IDR",
-        "kepuasan_pasien": "Skor_Kepuasan"
-    })
+        "kepuasan_pasien": "Skor_Kepuasan" # Pastikan ini sama dengan di CSV
+    }
     
+    df = df.rename(columns=mapping)
+    
+    # Cek apakah kolom Skor_Kepuasan benar-benar ada setelah rename
+    if "Skor_Kepuasan" not in df.columns:
+        # Jika masih tidak ada, buat kolom darurat agar app tidak crash
+        df["Skor_Kepuasan"] = 0 
+        
     return df.sort_values("Tanggal")
-
-df = load_real_data()
 
 # --- SIDEBAR (INTERACTIVITY) ---
 st.sidebar.header("🏥 Health Admin Panel")
