@@ -108,7 +108,7 @@ else:
 c1, c2 = st.columns(2)
 
 with c1:
-    st.subheader("📈 Tren Kunjungan Pasien (Bertumpang Tindih)")
+    st.subheader("📈 Tren Kunjungan Pasien")
     
     # Agregasi data harian
     df_counts = df_selection.groupby(['Tanggal', 'Departemen']).size().reset_index(name='Jumlah_Pasien')
