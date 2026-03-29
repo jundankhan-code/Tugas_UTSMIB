@@ -106,7 +106,7 @@ with c1:
     )
     
     # Memastikan sumbu Y mulai dari 0 untuk validitas data [cite: 1030]
-    fig_area.update_yaxes(rangemode="tozero") 
+    fig_area.update_yaxes(range=[0, 60])
     
     st.plotly_chart(fig_area, use_container_width=True)
 
