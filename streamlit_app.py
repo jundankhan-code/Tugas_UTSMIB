@@ -13,13 +13,10 @@ st.set_page_config(page_title="Health Facility KPI Dashboard", layout="wide")
 # --- LOAD REAL DATA FROM CSV ---
 @st.cache_data
 def load_real_data():
-    # Membaca file yang Anda upload ke GitHub
     df = pd.read_csv("data_rumah_sakit.csv")
-    
-    # Memastikan format Tanggal benar (Materi Kuliah 2: Time-series)
     df["Tanggal"] = pd.to_datetime(df["Tanggal"])
     
-    # Menyamakan nama kolom CSV dengan variabel di kode dashboard
+    # Rename kolom agar sesuai dengan kode dashboard
     df = df.rename(columns={
         "Nama Departemen": "Departemen",
         "Kode ICD-10": "Diagnosa_ICD10",
@@ -27,10 +24,11 @@ def load_real_data():
         "Biaya (IDR)": "Biaya_IDR"
     })
     
-    # Karena CSV Anda tidak punya kolom Skor_Kepuasan, kita buat nilai default 0 
-    # agar dashboard tidak error (Atau Anda bisa menambahkannya di Spreadsheet nanti)
+    # --- BAGIAN PENAMBAHAN SKOR KEPUASAN OTOMATIS ---
     if "Skor_Kepuasan" not in df.columns:
-        df["Skor_Kepuasan"] = 0
+        # Membuat angka acak 1-5 untuk setiap baris
+        df["Skor_Kepuasan"] = np.random.randint(1, 6, size=len(df))
+    # -----------------------------------------------
         
     return df.sort_values("Tanggal")
 
