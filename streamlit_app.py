@@ -10,21 +10,31 @@ st.set_page_config(page_title="Health Facility KPI Dashboard", layout="wide")
 # --- SIMULASI DATA (DATA REPRESENTATION) ---
 # Mengikuti materi Kuliah 2 & 3: Representasi Data & Klasifikasi [cite: 553, 3]
 @st.cache_data
-def load_simulated_data():
-    np.random.seed(42)
-    rows = 200
-    data = {
-        "Tanggal": [datetime(2026, 3, 1) + timedelta(days=np.random.randint(0, 30)) for _ in range(rows)],
-        "Departemen": np.random.choice(["IGD", "Farmasi", "Radiologi", "Laboratorium"], rows),
-        "Diagnosa_ICD10": np.random.choice(["I10", "E11", "A15.0", "J45", "K29.7"], rows), # Standar ICD-10 
-        "Waktu_Tunggu": np.random.randint(10, 60, rows), # Skala Ratio 
-        "Biaya_IDR": np.random.randint(100000, 2000000, rows), # Skala Ratio 
-        "Skor_Kepuasan": np.random.randint(1, 6, rows), # Skala Ordinal 
-        "Status_Pasien": np.random.choice(["Rawat Inap", "Rawat Jalan"], rows) # Skala Nominal 
-    }
-    return pd.DataFrame(data).sort_values("Tanggal")
+# --- LOAD REAL DATA FROM CSV ---
+@st.cache_data
+def load_real_data():
+    # Membaca file yang Anda upload ke GitHub
+    df = pd.read_csv("data_rumah_sakit.csv")
+    
+    # Memastikan format Tanggal benar (Materi Kuliah 2: Time-series)
+    df["Tanggal"] = pd.to_datetime(df["Tanggal"])
+    
+    # Menyamakan nama kolom CSV dengan variabel di kode dashboard
+    df = df.rename(columns={
+        "Nama Departemen": "Departemen",
+        "Kode ICD-10": "Diagnosa_ICD10",
+        "Waktu Tunggu (menit)": "Waktu_Tunggu",
+        "Biaya (IDR)": "Biaya_IDR"
+    })
+    
+    # Karena CSV Anda tidak punya kolom Skor_Kepuasan, kita buat nilai default 0 
+    # agar dashboard tidak error (Atau Anda bisa menambahkannya di Spreadsheet nanti)
+    if "Skor_Kepuasan" not in df.columns:
+        df["Skor_Kepuasan"] = 0
+        
+    return df.sort_values("Tanggal")
 
-df = load_simulated_data()
+df = load_real_data()
 
 # --- SIDEBAR (INTERACTIVITY) ---
 st.sidebar.header("🏥 Health Admin Panel")
