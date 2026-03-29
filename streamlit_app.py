@@ -11,25 +11,25 @@ st.set_page_config(page_title="Health Facility KPI Dashboard", layout="wide")
 # Mengikuti materi Kuliah 2 & 3: Representasi Data & Klasifikasi [cite: 553, 3]
 @st.cache_data
 # --- LOAD REAL DATA FROM CSV ---
+@# --- LOAD REAL DATA FROM CSV (DENGAN KEPUASAN) ---
 @st.cache_data
 def load_real_data():
+    # Membaca file yang sudah Anda update
     df = pd.read_csv("data_rumah_sakit.csv")
+    
+    # Memastikan format Tanggal benar
     df["Tanggal"] = pd.to_datetime(df["Tanggal"])
     
-    # Rename kolom agar sesuai dengan kode dashboard
+    # Menyamakan nama kolom CSV dengan variabel di kode dashboard
+    # Pastikan "kepuasan_pasien" masuk ke dalam rename menjadi "Skor_Kepuasan"
     df = df.rename(columns={
         "Nama Departemen": "Departemen",
         "Kode ICD-10": "Diagnosa_ICD10",
         "Waktu Tunggu (menit)": "Waktu_Tunggu",
-        "Biaya (IDR)": "Biaya_IDR"
+        "Biaya (IDR)": "Biaya_IDR",
+        "kepuasan_pasien": "Skor_Kepuasan"  # Kolom baru Anda
     })
     
-    # --- BAGIAN PENAMBAHAN SKOR KEPUASAN OTOMATIS ---
-    if "Skor_Kepuasan" not in df.columns:
-        # Membuat angka acak 1-5 untuk setiap baris
-        df["Skor_Kepuasan"] = np.random.randint(1, 6, size=len(df))
-    # -----------------------------------------------
-        
     return df.sort_values("Tanggal")
 
 df = load_real_data()
