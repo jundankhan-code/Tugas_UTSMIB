@@ -77,56 +77,50 @@ elif satisfaction < 3.5:
 else:
     st.success("✅ Seluruh indikator operasional berada dalam batas aman.")
 
-# --- VISUALIZATIONS (DATA MAPPING) ---
-# Implementasi materi Kuliah 2 & 4 [cite: 926, 6]
-c1, c2 = st.columns(2)
 
-# --- VISUALIZATIONS (DATA MAPPING & ANALYSIS) ---
-# Implementasi materi Kuliah 2 & 4 untuk mendukung CDSS [cite: 926, 6]
+# --- VISUALIZATIONS (OPTIMIZED FOR VARIANCE) ---
 c1, c2 = st.columns(2)
 
 with c1:
-    st.subheader("📈 Tren Kunjungan Pasien per Departemen")
-    # Mengelompokkan data berdasarkan Tanggal dan Departemen agar plot bervariasi 
-    # Ini akan menunjukkan fluktuasi harian yang nyata (ada hari sibuk/sepi)
-    df_trend = df_selection.groupby(["Tanggal", "Departemen"]).size().reset_index(name='Jumlah_Pasien')
+    st.subheader("📈 Tren Kunjungan Pasien Harian")
     
-    # Visualisasi Line Chart dengan pemisahan warna per departemen
+    # PERBAIKAN: Menjumlahkan data berdasarkan Tanggal dan Departemen secara spesifik
+    # Menggunakan .reset_index() agar 'Tanggal' kembali menjadi kolom, bukan index
+    df_counts = df_selection.groupby(['Tanggal', 'Departemen']).size().reset_index(name='Jumlah_Pasien')
+    
+    # Gunakan Bar Chart jika data harian masih terlihat kaku, 
+    # atau Line Chart jika ingin melihat fluktuasi kontinu
     fig_line = px.line(
-        df_trend, 
+        df_counts, 
         x="Tanggal", 
         y="Jumlah_Pasien", 
         color="Departemen", 
         markers=True,
-        line_shape="linear",
-        template="plotly_white",
-        labels={"Jumlah_Pasien": "Jumlah Pasien", "Tanggal": "Periode Kunjungan"}
+        title="Distribusi Kedatangan Pasien",
+        template="plotly_white"
     )
     
-    # Optimasi sumbu agar fluktuasi terlihat jelas
-    fig_line.update_layout(hovermode="x unified")
-    fig_line.update_yaxes(rangemode="tozero") # Memastikan skala mulai dari 0 [cite: 1030]
+    # Memaksa sumbu Y menyesuaikan dengan nilai maksimal data Anda (2-11 ke atas)
+    fig_line.update_yaxes(rangemode="tozero", autorange=True)
     st.plotly_chart(fig_line, use_container_width=True)
 
 with c2:
-    st.subheader("📊 Analisis Beban Kasus (ICD-10)")
-    # Menghitung frekuensi kemunculan diagnosa untuk klasifikasi penyakit [cite: 235]
-    df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
-    df_icd.columns = ["Kode_ICD10", "Total_Kasus"]
+    st.subheader("📊 Analisis Kasus (ICD-10)")
     
-    # Visualisasi Bar Chart untuk Data Nominal/Kategorikal [cite: 1029]
+    # Representasi Klasifikasi Diagnosa (Materi Kuliah 3) [cite: 134]
+    df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
+    df_icd.columns = ["Kode_ICD10", "Total"]
+    
+    # Menggunakan Histogram/Bar untuk melihat sebaran frekuensi [cite: 936]
     fig_bar = px.bar(
         df_icd, 
         x="Kode_ICD10", 
-        y="Total_Kasus", 
-        color="Kode_ICD10",
-        text_auto='.2s', # Menampilkan angka di atas batang
-        template="plotly_white",
-        labels={"Total_Kasus": "Jumlah Pasien", "Kode_ICD10": "Kode Diagnosa"}
+        y="Total", 
+        color="Total",
+        color_continuous_scale="Viridis",
+        text_auto=True,
+        template="plotly_white"
     )
-    
-    # Menambahkan interaktivitas agar user bisa zoom pada kode tertentu
-    fig_bar.update_layout(showlegend=False)
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- TABEL RINGKASAN (NILAI TAMBAH) ---
