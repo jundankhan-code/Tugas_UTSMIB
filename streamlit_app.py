@@ -81,38 +81,58 @@ else:
 # Implementasi materi Kuliah 2 & 4 [cite: 926, 6]
 c1, c2 = st.columns(2)
 
+# --- VISUALIZATIONS (DATA MAPPING & ANALYSIS) ---
+# Implementasi materi Kuliah 2 & 4 untuk mendukung CDSS [cite: 926, 6]
+c1, c2 = st.columns(2)
+
 with c1:
-    st.subheader("Tren Kunjungan Pasien per Departemen")
-    # Mengelompokkan berdasarkan Tanggal DAN Departemen agar grafik lebih kaya informasi 
-    df_counts = df_selection.groupby(["Tanggal", "Departemen"]).size().reset_index(name='Jumlah_Pasien')
+    st.subheader("📈 Tren Kunjungan Pasien per Departemen")
+    # Mengelompokkan data berdasarkan Tanggal dan Departemen agar plot bervariasi 
+    # Ini akan menunjukkan fluktuasi harian yang nyata (ada hari sibuk/sepi)
+    df_trend = df_selection.groupby(["Tanggal", "Departemen"]).size().reset_index(name='Jumlah_Pasien')
     
-    # Menambahkan 'color' agar garis terbagi per departemen (Representasi Data Kuliah 2) [cite: 931]
-    fig_line = px.line(df_counts, 
-                       x="Tanggal", 
-                       y="Jumlah_Pasien", 
-                       color="Departemen", 
-                       markers=True, 
-                       template="plotly_white",
-                       title="Variansi Kunjungan Harian")
+    # Visualisasi Line Chart dengan pemisahan warna per departemen
+    fig_line = px.line(
+        df_trend, 
+        x="Tanggal", 
+        y="Jumlah_Pasien", 
+        color="Departemen", 
+        markers=True,
+        line_shape="linear",
+        template="plotly_white",
+        labels={"Jumlah_Pasien": "Jumlah Pasien", "Tanggal": "Periode Kunjungan"}
+    )
     
-    # Mengatur agar sumbu Y mulai dari 0 agar fluktuasi terlihat jujur 
-    fig_line.update_yaxes(rangemode="tozero")
+    # Optimasi sumbu agar fluktuasi terlihat jelas
+    fig_line.update_layout(hovermode="x unified")
+    fig_line.update_yaxes(rangemode="tozero") # Memastikan skala mulai dari 0 [cite: 1030]
     st.plotly_chart(fig_line, use_container_width=True)
 
 with c2:
-    st.subheader("Beban Kasus Penyakit (ICD-10)")
-    # Menghitung frekuensi kemunculan kode ICD-10 [cite: 423, 431]
+    st.subheader("📊 Analisis Beban Kasus (ICD-10)")
+    # Menghitung frekuensi kemunculan diagnosa untuk klasifikasi penyakit [cite: 235]
     df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
-    df_icd.columns = ["Kode_ICD10", "Jumlah"]
+    df_icd.columns = ["Kode_ICD10", "Total_Kasus"]
     
-    # Visualisasi Bar Chart untuk Data Nominal/Kategorikal [cite: 1029, 1030]
-    fig_bar = px.bar(df_icd, 
-                     x="Kode_ICD10", 
-                     y="Jumlah", 
-                     color="Kode_ICD10",
-                     text_auto=True,
-                     template="plotly_white")
+    # Visualisasi Bar Chart untuk Data Nominal/Kategorikal [cite: 1029]
+    fig_bar = px.bar(
+        df_icd, 
+        x="Kode_ICD10", 
+        y="Total_Kasus", 
+        color="Kode_ICD10",
+        text_auto='.2s', # Menampilkan angka di atas batang
+        template="plotly_white",
+        labels={"Total_Kasus": "Jumlah Pasien", "Kode_ICD10": "Kode Diagnosa"}
+    )
+    
+    # Menambahkan interaktivitas agar user bisa zoom pada kode tertentu
+    fig_bar.update_layout(showlegend=False)
     st.plotly_chart(fig_bar, use_container_width=True)
+
+# --- TABEL RINGKASAN (NILAI TAMBAH) ---
+# Menyediakan data terstruktur untuk audit operasional [cite: 453, 499]
+st.subheader("📋 Ringkasan Data Operasional Terfilter")
+st.dataframe(df_selection, use_container_width=True)
 
 # --- LEGAL & PRIVACY (HIPAA COMPLIANCE) ---
 # Implementasi materi Kuliah 6 [cite: 365, 378]
