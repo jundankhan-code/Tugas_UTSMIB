@@ -82,17 +82,36 @@ else:
 c1, c2 = st.columns(2)
 
 with c1:
-    st.subheader("Tren Kunjungan Pasien (Time-Series)")
-    # Analisis tren waktu [cite: 861]
-    fig_line = px.line(df_selection.groupby("Tanggal").size().reset_index(name='Jumlah'), 
-                       x="Tanggal", y="Jumlah", markers=True, template="plotly_white")
+    st.subheader("Tren Kunjungan Pasien per Departemen")
+    # Mengelompokkan berdasarkan Tanggal DAN Departemen agar grafik lebih kaya informasi 
+    df_counts = df_selection.groupby(["Tanggal", "Departemen"]).size().reset_index(name='Jumlah_Pasien')
+    
+    # Menambahkan 'color' agar garis terbagi per departemen (Representasi Data Kuliah 2) [cite: 931]
+    fig_line = px.line(df_counts, 
+                       x="Tanggal", 
+                       y="Jumlah_Pasien", 
+                       color="Departemen", 
+                       markers=True, 
+                       template="plotly_white",
+                       title="Variansi Kunjungan Harian")
+    
+    # Mengatur agar sumbu Y mulai dari 0 agar fluktuasi terlihat jujur 
+    fig_line.update_yaxes(rangemode="tozero")
     st.plotly_chart(fig_line, use_container_width=True)
 
 with c2:
-    st.subheader("Distribusi Penyakit (ICD-10)")
-    # Representasi Klasifikasi Diagnosa 
-    fig_bar = px.bar(df_selection["Diagnosa_ICD10"].value_counts().reset_index(), 
-                     x="Diagnosa_ICD10", y="count", color="Diagnosa_ICD10", template="plotly_white")
+    st.subheader("Beban Kasus Penyakit (ICD-10)")
+    # Menghitung frekuensi kemunculan kode ICD-10 [cite: 423, 431]
+    df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
+    df_icd.columns = ["Kode_ICD10", "Jumlah"]
+    
+    # Visualisasi Bar Chart untuk Data Nominal/Kategorikal [cite: 1029, 1030]
+    fig_bar = px.bar(df_icd, 
+                     x="Kode_ICD10", 
+                     y="Jumlah", 
+                     color="Kode_ICD10",
+                     text_auto=True,
+                     template="plotly_white")
     st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- LEGAL & PRIVACY (HIPAA COMPLIANCE) ---
