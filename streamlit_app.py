@@ -86,18 +86,28 @@ with c1:
     # 1. Agregasi data: Hitung jumlah pasien per Tanggal dan Departemen [cite: 861]
     df_counts = df_selection.groupby(['Tanggal', 'Departemen']).size().reset_index(name='Jumlah_Pasien')
     
-    # 2. Membuat Stacked Area Chart sesuai gambar yang Anda inginkan
-    # Menggunakan px.area untuk memberikan efek warna di bawah garis [cite: 926]
+    # 2. Membuat Stacked Area Chart
     fig_area = px.area(
         df_counts, 
         x="Tanggal", 
         y="Jumlah_Pasien", 
-        color="Departemen", # Warna membedakan departemen [cite: 1029]
+        color="Departemen", 
         markers=True,
         template="plotly_white",
         labels={"Jumlah_Pasien": "Total Pasien", "Tanggal": "Periode"},
         line_shape="linear"
     )
+    
+    # 3. Optimasi Hover & Interaktivitas
+    fig_area.update_layout(
+        hovermode="x unified",
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
+    )
+    
+    # PERUBAHAN DISINI: Mengatur rentang sumbu Y secara manual (0 hingga 60) 
+    fig_area.update_yaxes(range=[0, 60]) 
+    
+    st.plotly_chart(fig_area, use_container_width=True)
     
     # 3. Optimasi Hover & Interaktivitas agar data lengkap terlihat saat kursor menempel
     fig_area.update_layout(
@@ -109,6 +119,25 @@ with c1:
     fig_area.update_yaxes(range=[0, 60])
     
     st.plotly_chart(fig_area, use_container_width=True)
+
+with c2:
+    st.subheader("📊 Analisis Kasus (ICD-10)")
+    
+    # Representasi Klasifikasi Diagnosa (Materi Kuliah 3) [cite: 134]
+    df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
+    df_icd.columns = ["Kode_ICD10", "Total"]
+    
+    # Menggunakan Histogram/Bar untuk melihat sebaran frekuensi [cite: 936]
+    fig_bar = px.bar(
+        df_icd, 
+        x="Kode_ICD10", 
+        y="Total", 
+        color="Total",
+        color_continuous_scale="Viridis",
+        text_auto=True,
+        template="plotly_white"
+    )
+    st.plotly_chart(fig_bar, use_container_width=True)
 
 # --- TABEL RINGKASAN (NILAI TAMBAH) ---
 # Menyediakan data terstruktur untuk audit operasional [cite: 453, 499]
