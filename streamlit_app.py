@@ -80,48 +80,35 @@ else:
 
 # --- VISUALIZATIONS (OPTIMIZED FOR VARIANCE) ---
 c1, c2 = st.columns(2)
-
 with c1:
-    st.subheader("📈 Tren Kunjungan Pasien Harian")
+    st.subheader("📈 Tren Kumulatif Kunjungan Pasien")
     
-    # PERBAIKAN: Menjumlahkan data berdasarkan Tanggal dan Departemen secara spesifik
-    # Menggunakan .reset_index() agar 'Tanggal' kembali menjadi kolom, bukan index
+    # 1. Agregasi data: Hitung jumlah pasien per Tanggal dan Departemen [cite: 861]
     df_counts = df_selection.groupby(['Tanggal', 'Departemen']).size().reset_index(name='Jumlah_Pasien')
     
-    # Gunakan Bar Chart jika data harian masih terlihat kaku, 
-    # atau Line Chart jika ingin melihat fluktuasi kontinu
-    fig_line = px.line(
+    # 2. Membuat Stacked Area Chart sesuai gambar yang Anda inginkan
+    # Menggunakan px.area untuk memberikan efek warna di bawah garis [cite: 926]
+    fig_area = px.area(
         df_counts, 
         x="Tanggal", 
         y="Jumlah_Pasien", 
-        color="Departemen", 
+        color="Departemen", # Warna membedakan departemen [cite: 1029]
         markers=True,
-        title="Distribusi Kedatangan Pasien",
-        template="plotly_white"
+        template="plotly_white",
+        labels={"Jumlah_Pasien": "Total Pasien", "Tanggal": "Periode"},
+        line_shape="linear"
     )
     
-    # Memaksa sumbu Y menyesuaikan dengan nilai maksimal data Anda (2-11 ke atas)
-    fig_line.update_yaxes(rangemode="tozero", autorange=True)
-    st.plotly_chart(fig_line, use_container_width=True)
-
-with c2:
-    st.subheader("📊 Analisis Kasus (ICD-10)")
-    
-    # Representasi Klasifikasi Diagnosa (Materi Kuliah 3) [cite: 134]
-    df_icd = df_selection["Diagnosa_ICD10"].value_counts().reset_index()
-    df_icd.columns = ["Kode_ICD10", "Total"]
-    
-    # Menggunakan Histogram/Bar untuk melihat sebaran frekuensi [cite: 936]
-    fig_bar = px.bar(
-        df_icd, 
-        x="Kode_ICD10", 
-        y="Total", 
-        color="Total",
-        color_continuous_scale="Viridis",
-        text_auto=True,
-        template="plotly_white"
+    # 3. Optimasi Hover & Interaktivitas agar data lengkap terlihat saat kursor menempel
+    fig_area.update_layout(
+        hovermode="x unified", # Menampilkan semua data departemen dalam satu kotak hover
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1)
     )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    
+    # Memastikan sumbu Y mulai dari 0 untuk validitas data [cite: 1030]
+    fig_area.update_yaxes(rangemode="tozero") 
+    
+    st.plotly_chart(fig_area, use_container_width=True)
 
 # --- TABEL RINGKASAN (NILAI TAMBAH) ---
 # Menyediakan data terstruktur untuk audit operasional [cite: 453, 499]
