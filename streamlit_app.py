@@ -11,7 +11,6 @@ st.set_page_config(page_title="Health Facility KPI Dashboard", layout="wide")
 # Mengikuti materi Kuliah 2 & 3: Representasi Data & Klasifikasi [cite: 553, 3]
 @st.cache_data
 # --- LOAD REAL DATA FROM CSV ---
-@# --- LOAD REAL DATA FROM CSV (DENGAN KEPUASAN) ---
 @st.cache_data
 def load_real_data():
     # Membaca file yang sudah Anda update
