@@ -73,45 +73,58 @@ with col3:
 
 st.divider()
 
-# --- VISUALIZATIONS ---
+# --- VISUALIZATIONS (DYNAMIC RANGE) ---
 c1, c2 = st.columns(2)
 
 with c1:
     st.subheader("📈 Tren Kunjungan Pasien")
     
-    # Agregasi jumlah pasien
+    # Agregasi data harian [cite: 861]
     df_counts = df_selection.groupby(['Tanggal', 'Departemen']).size().reset_index(name='Jumlah_Pasien')
     
-    # Membuat grafik Garis (Line) agar bisa bertumpang tindih (Overlap)
-    # Area chart tidak disarankan jika ingin melihat tumpang tindih antar garis dengan jelas
+    # Hitung nilai max secara dinamis untuk menentukan rentang Y [cite: 1030]
+    if not df_counts.empty:
+        max_val_c1 = df_counts['Jumlah_Pasien'].max()
+        # Logika buffer: jika > 30 tambah 20, jika < 30 tambah 10 (sesuai permintaan Anda)
+        y_limit_c1 = max_val_c1 + (20 if max_val_c1 > 30 else 10)
+    else:
+        y_limit_c1 = 60 # Fallback jika data kosong
+
     fig_line = px.line(
         df_counts, 
         x="Tanggal", 
         y="Jumlah_Pasien", 
         color="Departemen",
-        color_discrete_map=color_map, # Menggunakan peta warna tetap
+        color_discrete_map=color_map, # Konsistensi warna [cite: 1029]
         markers=True,
-        template="plotly_white",
-        title="Fluktuasi Kunjungan Harian"
+        template="plotly_white"
     )
     
     fig_line.update_layout(hovermode="x unified")
-    fig_line.update_yaxes(range=[0, 60]) # Rentang sumbu Y 0-60
+    # Terapkan rentang dinamis hasil perhitungan
+    fig_line.update_yaxes(range=[0, y_limit_c1]) 
     st.plotly_chart(fig_line, use_container_width=True)
 
 with c2:
     st.subheader("📊 Analisis Kasus (ICD-10)")
-    # Hitung ICD-10 dari data asli (bukan data yang diduplikasi untuk 'Total')
+    
+    # Hitung frekuensi diagnosa [cite: 235]
     df_icd = df_kpi["Diagnosa_ICD10"].value_counts().reset_index()
     df_icd.columns = ["Kode_ICD10", "Total"]
     
+    # Hitung nilai max dinamis untuk grafik batang
+    if not df_icd.empty:
+        max_val_c2 = df_icd['Total'].max()
+        y_limit_c2 = max_val_c2 + (20 if max_val_c2 > 30 else 10)
+    else:
+        y_limit_c2 = 60
+
     fig_bar = px.bar(
         df_icd, x="Kode_ICD10", y="Total", 
         color="Total", color_continuous_scale="Viridis",
         text_auto=True, template="plotly_white"
     )
-    fig_bar.update_yaxes(range=[0, 60])
+    
+    # Terapkan rentang dinamis pada sumbu Y
+    fig_bar.update_yaxes(range=[0, y_limit_c2])
     st.plotly_chart(fig_bar, use_container_width=True)
-
-st.subheader("📋 Ringkasan Data Operasional")
-st.dataframe(df_selection, use_container_width=True)
